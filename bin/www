@@ -3,6 +3,7 @@
 /**
  * Module dependencies.
  */
+const dotenv = require('dotenv').config();
 
 var app = require('../app');
 var debug = require('debug')('api:server');
