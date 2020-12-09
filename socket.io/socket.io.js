@@ -15,7 +15,15 @@ module.exports = function (io, socket) {
      
   });
   socket.on('disconnect', () => {
-    userOnline.splice(userOnline.indexOf(socket.id),1);
+    
+    for(var i = 0; i < userOnline.length; i++){
+      if (userOnline[i].id === socket.id) { // nếu là sinh viên cần xóa
+        userOnline.splice(i,1);
+        break;
+      }
+  }
+    // console.log(userOnline.indexOf(userOnlinesocket.id));
+    // userOnline.splice(userOnline.indexOf(socket.id),1);
     io.sockets.emit("onlineUserServer",userOnline);
     console.log('user disconnected',socket.id);
   });
