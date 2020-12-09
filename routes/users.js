@@ -24,7 +24,7 @@ router.post("/signin",passport.authenticate("local", { session: false }),
     } else {
       const sign = { username: user.username, id: user.id };
       const token = jwt.sign(sign, process.env.JWT_SECRET);
-      console.log("token controller:" + token);
+      // console.log("token controller:" + token);
       res.json({ message: "200OK", token: token, user: user });
     }
   }
@@ -43,7 +43,7 @@ router.post("/signin/google", async (req, res, next) => {
       });
       const payload = ticket.getPayload();
       const userid = payload['sub'];
-        console.log(payload);
+        // console.log(payload);
 
     if (payload === null) {      
        res.status(401).json({ message: "google auth fall" });
@@ -55,7 +55,7 @@ router.post("/signin/google", async (req, res, next) => {
             const newUser = await userModel.createUser(
             payload["sub"],
             "",
-            payload["family_name"]+""+payload["given_name"],
+            payload["family_name"]+" "+payload["given_name"],
             "",
             payload["email"]
           );
@@ -63,7 +63,7 @@ router.post("/signin/google", async (req, res, next) => {
         } 
         const sign = { username: user.username,password: user.password };
         const token = jwt.sign(sign, process.env.JWT_SECRET);
-        console.log("token controller:" + token);
+        // console.log("token controller:" + token);
         res.json({ message: "200OK", token: token, user: user });}
     }
 
@@ -105,7 +105,7 @@ const verifyFB=async(accessToken,userID,res)=>
              let user = await userModel.getUserByUsername(userid);  
              if(!user)
              {
-                 console.log("new");
+                //  console.log("new");
                  const newUser = await userModel.createUser(
                  data.id,
                  "",
@@ -117,7 +117,7 @@ const verifyFB=async(accessToken,userID,res)=>
              } 
              const sign = { username: user.username,password: user.password };
              const token = jwt.sign(sign, process.env.JWT_SECRET);
-             console.log("token controller:" + token);
+            //  console.log("token controller:" + token);
              res.json({ message: "200OK", token: token, user: user });}   
       
 }
@@ -133,7 +133,7 @@ router.post("/signin/facebook",async (req, res, next) => {
 
 router.post("/signup", async (req, res) => {
   const entity = req.body;
-  console.log(entity);
+  // console.log(entity);
 
   try {
     const user = await userModel.getUserByUsername(req.body.username);
