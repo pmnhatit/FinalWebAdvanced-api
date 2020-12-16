@@ -7,6 +7,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 
 const usersRouter= require("./routes/users")
+const profileRouter= require('./routes/profile');
 
 
 mongoose.connect(process.env.URI, {useNewUrlParser: true});
@@ -25,6 +26,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors());
 
 app.use('/users', usersRouter);
+app.use('/profile',profileRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

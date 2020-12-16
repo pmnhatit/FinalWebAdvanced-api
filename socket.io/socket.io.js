@@ -1,7 +1,12 @@
+const historyModel = require("../model/history/history.model");
+
+const moment = require('moment');
+const timestamp = require('time-stamp');
 var userOnline=[];
 var listRooms = [];
 var listRooms_frined=[];
 const { addUser, removeUser, getUser, getUsersInRoom } = require('../users');
+
 module.exports = function (io, socket) {
   console.log("co ket noi",socket.id);
   
@@ -128,11 +133,17 @@ module.exports = function (io, socket) {
 
       // it's empty when there is no second player
       if (listRooms[i].id === data.roomInfo) {
-          const winner_id = data.winner==='X' ? listRooms[i].idplayerX : listRooms[i].idplayerO;
-          console.log(winner_id);
-        // io.in(listRooms[i].id).emit('joinroom-success', listRooms[i]);
-        
-        // console.log('Room [' + socket.room + '] played');
+          const player1 = data.winner==='X' ? listRooms[i].idplayerX : listRooms[i].idplayerO;
+          
+          const player2 = data.winner==='X' ? listRooms[i].idplayerO : listRooms[i].idplayerX;
+          const date = timestamp('DD/MM/YYYY');
+
+          const newHistory =  historyModel.createHistory(
+            player1,
+            player2,
+            date,
+            0
+          );
         return;
       }
     }
