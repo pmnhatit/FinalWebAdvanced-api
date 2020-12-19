@@ -150,6 +150,8 @@ module.exports = function (io, socket) {
   })
 // chat
   socket.on('join_chat', ({ name, room }, callback) => {
+    console.log("join chat",name);
+    name = name.slice(1, name.length-1);
     const { error, user } = addUser({ id: socket.id, name, room });
 
     if(error) return callback(error);
