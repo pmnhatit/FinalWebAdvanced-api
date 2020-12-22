@@ -4,18 +4,22 @@ const moment = require('moment');
 const timestamp = require('time-stamp');
 var userOnline=[];
 var listRooms = [];
-var listRooms_frined=[];
+var listRooms_friend=[];
+let listPlay=[];
+let listWait=[];
 const { addUser, removeUser, getUser, getUsersInRoom } = require('../users');
 
 module.exports = function (io, socket) {
   console.log("co ket noi",socket.id);
-  
+  socket.on('tableonline',()=>{
+    io.sockets.emit("tableonline_play",listPlay);
+    io.sockets.emit("tableonline_wait",listWait);
+  })
   socket.on('onlineUser', (name) => {
     var userItem={
       name:name,
       id:socket.id
     }
-   
      userOnline.push(userItem);
      console.log(userOnline);
      io.sockets.emit("onlineUserServer",userOnline);
@@ -62,7 +66,12 @@ module.exports = function (io, socket) {
         socket.join(socket.room);
         // send successful message to both
         io.in(listRooms[i].id).emit('joinroom-success', listRooms[i]);
-        
+        for ( var i=0;i<listWait.length;i++){
+          if(listWait[i]===socket.room){
+            listWait.splice(i,1);
+            listPlay.push(socket.room);
+          }
+        }
         console.log('Room [' + socket.room + '] played');
         return;
       }
@@ -81,6 +90,8 @@ module.exports = function (io, socket) {
     // add this client to the room
     socket.room = room.id;
     socket.join(socket.room);
+    //them ban choi vao danh sach cho 
+    listWait.push(room.id);
     console.log('Room [' + socket.room + '] created');
   });
   socket.on('joinroom_friend', function (data) {
@@ -89,22 +100,25 @@ module.exports = function (io, socket) {
     socket.data = data;
 
     // find an empty room
-    for (var i = 0; i < listRooms_frined.length; i++) {
+    for (var i = 0; i < listRooms_friend.length; i++) {
 
       // it's empty when there is no second player
-      if (listRooms_frined[i].id == data.id) {
+      if (listRooms_friend[i].id ===data.id ){
 
         // fill empty seat and join room
-        listRooms[i].playerO = data.name;
-        listRooms[i].idplayerO=data.id;
-        socket.room = listRooms_frined[i].id;
+        listRooms_friend[i].playerO = data.name;
+        listRooms_friend[i].idplayerO=data.id;
+        socket.room = listRooms_friend[i].id;
         socket.join(socket.room);
-        //moi them chat
-        socket.emit('message', { user: 'admin', text: `${data.name}, welcome to room ${room.id}.`});
-        socket.broadcast.to(socket.room).emit('message', { user: 'admin', text: `${data.name} has joined!` });
         // send successful message to both
-        io.in(listRooms_frined[i].id).emit('joinroom-success', listRooms_frined[i]);
-
+        io.in(listRooms_friend[i].id).emit('joinroom-success', listRooms_friend[i]);
+        // xoa phong o danh sach cho them vao danh sach choi
+        for ( var i=0;i<listWait.length;i++){
+          if(listWait[i]===socket.room){
+            listWait.splice(i,1);
+            listPlay.push(socket.room);
+          }
+        }
         console.log('Room [' + socket.room + '] played');
         return;
       }
@@ -112,20 +126,19 @@ module.exports = function (io, socket) {
 
     // create new room if there is no empty one
     var room = {
-      id: data +" "+Date.now(),
+      id: data.id,
       playerX: data.name,
       idplayerX: data.id,
       playerO: null,
       idplayerO:null
     }
-    listRooms_frined.push(room);
+    listRooms_friend.push(room);
 
     // add this client to the room
     socket.room = room.id;
     socket.join(socket.room);
-    //moi them chat
-    socket.emit('message', { user: 'admin', text: `${data.name}, welcome to room ${socket.room}.`});
-    socket.broadcast.to(socket.room).emit('message', { user: 'admin', text: `${data.name} has joined!` });
+    //them ban choi vao danh sach cho 
+    listWait.push(room.id);
     console.log('Room [' + socket.room + '] created');
   });
   socket.on('infoWinner',(data)=>{
@@ -150,7 +163,6 @@ module.exports = function (io, socket) {
   })
 // chat
   socket.on('join_chat', ({ name, room }, callback) => {
-    console.log("join chat",name);
     name = name.slice(1, name.length-1);
     const { error, user } = addUser({ id: socket.id, name, room });
 
@@ -182,7 +194,7 @@ module.exports = function (io, socket) {
     }
 
 
-
+    // xoa nguoi dung dang online
     for(var i = 0; i < userOnline.length; i++){
       if (userOnline[i].id === socket.id) { // nếu là sinh viên cần xóa
         userOnline.splice(i,1);
@@ -196,48 +208,41 @@ module.exports = function (io, socket) {
 
 
 
+      //xoa phong choi/cho khi nguoi do thoat
+  for (var i=0;i<listPlay.length;i++)
+  {
+    if( listPlay[i]===socket.room)
+    {
+      listPlay.splice(i, 1);
+      break;
+    }
+  }
+  for (var i=0;i<listWait.length;i++)
+  {
+    if( listWait[i]===socket.room)
+    {
+      listWait.splice(i, 1);
+      break;
+    }
+  }
+  io.sockets.emit("tableonline_play",listPlay);
+  io.sockets.emit("tableonline_wait",listWait);
+// xoa phong khi co nguoi thoat ra (ngau nhien)
     for (var i = 0; i < listRooms.length; i++) {
-      if (listRooms[i].id == socket.room) {
+      if (listRooms[i].id === socket.room) {
         listRooms.splice(i, 1);
-        // destroy it when the room just created, second player hasn't enter yet
-        // if (socket.withBot || listRooms[i].playerO == null) {
-        //   listRooms.splice(i, 1);
-        //   console.log('Room [' + socket.room + '] destroyed');
-        // }
-        // // mark the room empty by set flag DISCONNECTED for the one left 
-        // else {
-
-        //   if (listRooms[i].playerO === socket.data.fullname) {
-        //     listRooms[i].playerO = 'DISCONNECTED';
-        //   }
-        //   else {
-        //     listRooms[i].playerX = 'DISCONNECTED';
-        //   }
-
-        //   // check if both is disconnect
-        //   if (listRooms[i].playerO === 'DISCONNECTED' && listRooms[i].playerX === 'DISCONNECTED') {
-
-        //     // destroy the room
-        //     listRooms.splice(i, 1);
-        //     console.log('Room [' + socket.room + '] destroyed');
-        //   } else {
-          
-        //     // inform the other
-        //     io.to(listRooms[i].id).emit('disconnect', listRooms[i]);
-        //     console.log('Player [' + socket.data.username + '] leave room [' + socket.room + ']');
-        //   }
-        // }
-        
         break;
       }
       
     }
-    for (var i = 0; i < listRooms_frined.length; i++) {
-      if (listRooms_frined[i].id == socket.room) {
-        listRooms_frined.splice(i, 1);
+    // xoa phong khi co nguoi thoat ra (ban be)
+    for (var i = 0; i < listRooms_friend.length; i++) {
+      if (listRooms_friend[i].id === socket.room) {
+        listRooms_friend.splice(i, 1);
         break;
       }
     }
   });
+
 
 }
