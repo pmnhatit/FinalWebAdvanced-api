@@ -51,7 +51,7 @@ router.post("/signin/google", async (req, res, next) => {
         let user = await userModel.getUserByUsername(userid);  
         if(!user)
         {
-            console.log("new");
+            // console.log("new");
             const newUser = await userModel.createUser(
             payload["sub"],
             "",

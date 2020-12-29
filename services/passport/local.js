@@ -5,9 +5,9 @@ module.exports = new LocalStrategy({ session: false },async (username, password,
     // We use default {username: "catlover", password: "cat", id: 1} to authenticate.
     // You should use database to check for user credentials.
     const user = await userModel.getUserByUsername(username);
-    console.log("local");
+    // console.log("local");
     if (!user) {
-      console.log("user not exit");
+      // console.log("user not exit");
       callback(null, { message: "false" });
     } else {
       const infoUser = {_id:user._id ,username: user.username,name: user.name,
@@ -15,7 +15,7 @@ module.exports = new LocalStrategy({ session: false },async (username, password,
         bcrypt.compare(password,user.password, (err,isMatch ) =>{
           if (err) throw err;
                   if (isMatch) {
-                    console.log("user:"+user);
+                    // console.log("user:"+user);
                       callback(null, infoUser)
                   } else {
                     // callback(null, false);
