@@ -8,7 +8,8 @@ var userchema = new mongoose.Schema({
     name: String,
     phone: String,
     email: String,
-    auth: String
+    blocked:Boolean,
+    auth: Boolean
 },
     {
         collection: 'user'

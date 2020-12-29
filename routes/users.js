@@ -162,4 +162,16 @@ router.post(
     //const result= await userModel.patch(entity);
   }
 );
+
+router.get(
+  "/profile",
+  passport.authenticate("jwt", { session: false }),
+  async (req, res) => {
+    const entity = req.body;
+    console.log(entity);
+    const result= await userModel.getUserByID(entity.id);
+    console.log(result);
+    //const result= await userModel.patch(entity);
+  }
+);
 module.exports = router;
