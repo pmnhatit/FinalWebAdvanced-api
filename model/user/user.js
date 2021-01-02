@@ -8,6 +8,9 @@ var userchema = new mongoose.Schema({
     name: String,
     phone: String,
     email: String,
+    matches: Number,
+    trophies:Number,
+    win_rate:Number,
     blocked:Boolean,
     auth: Boolean
 },
