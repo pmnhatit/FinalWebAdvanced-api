@@ -153,13 +153,7 @@ router.post("/signup", async (req, res) => {
     res.status(401).json({ message: "errors", error: error });
   }
 });
-router.post(
-  "/edit",
-  passport.authenticate("jwt", { session: false }),
-  async (req, res) => {
-    const entity = req.body;
-    console.log(entity);
-    //const result= await userModel.patch(entity);
-  }
-);
+
+
+
 module.exports = router;
