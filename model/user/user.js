@@ -12,7 +12,8 @@ var userchema = new mongoose.Schema({
     trophies:Number,
     win_rate:Number,
     blocked:Boolean,
-    auth: Boolean
+    auth: Boolean,
+    code: String
 },
     {
         collection: 'user'

@@ -60,6 +60,8 @@ module.exports.createUser = async (username, password, name, phone, email) =>{
     const trophies=1000;
     const matches=0;
     const win_rate=100;
-    const newUser = new userModel({ username, password: hash, name, phone, email,matches,trophies,win_rate});
+    const blocked=false;
+    const code="";
+    const newUser = new userModel({ username, password: hash, name, phone, email,matches,trophies,win_rate, blocked, code});
     return newUser.save();
 }

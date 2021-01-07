@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 
 const usersRouter= require("./routes/users")
 const profileRouter= require('./routes/profile');
+const verifyRouter = require("./routes/verify");
 
 
 mongoose.connect(process.env.URI, {useNewUrlParser: true});
@@ -27,6 +28,7 @@ app.use(cors());
 
 app.use('/users', usersRouter);
 app.use('/profile',profileRouter);
+app.use('/verify',verifyRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

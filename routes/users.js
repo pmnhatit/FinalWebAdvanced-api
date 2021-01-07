@@ -6,6 +6,7 @@ const { OAuth2Client } = require("google-auth-library");
 const fetch = require("node-fetch");
 
 const userModel = require("../model/user/user.model");
+const verifyService = require("../model/verify/verify.model");
 
 /* GET users listing. */
 router.get(
@@ -131,7 +132,7 @@ router.post("/signin/facebook",async (req, res, next) => {
     }
   );
 
-router.post("/signup", async (req, res) => {
+router.post("/signup", async (req, res, next) => {
   const entity = req.body;
   // console.log(entity);
 
@@ -140,14 +141,15 @@ router.post("/signup", async (req, res) => {
     if (user) {
       res.status(401).json({ message: "user_exists" });
     } else {
-      const newUser = await userModel.createUser(
-        req.body.username,
-        req.body.password,
-        req.body.name,
-        req.body.phone,
-        req.body.email
-      );
-      res.json({ message: "200OK" });
+      verifyService.sendemailverify(req, res, next);
+      // const newUser = await userModel.createUser(
+      //   req.body.username,
+      //   req.body.password,
+      //   req.body.name,
+      //   req.body.phone,
+      //   req.body.email
+      // );
+      res.json({ message: "Check your email" });
     }
   } catch (error) {
     res.status(401).json({ message: "errors", error: error });
