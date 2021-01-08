@@ -95,19 +95,16 @@ module.exports.changePass = async (username, newPass)=>{
 }
 
 module.exports.forgotPassword = async (req, res, next)=>{
-    console.log("Vo service forgot")
     let code, link, content;
     const {username} = req.body;
     code = Math.floor((Math.random() * 10000) + 54);
-    console.log("Vo service forgot2222")
     const user = await this.getUserByUsername(username);
     if(!user){
         res.status(400).json({message:"username is wrong"});
     }else{
         this.addCodeResetPass(username, code);
-    console.log("Vo service forgot1")
     // link = "http://" + req.get('host') + "/user/emailverify/verify?id=" + verifycode + "&username=" + username;
-    link = "http://localhost:3000" + "/reset-password/" + username;
+    link = "https://user-caro.herokuapp.com" + "/reset-password/" + username;
     content = "Hello this is caro online mail system, this is code to reset password: <h3>"+code+"</h3><br> Please Click on the link to reset your password.<br><a href=" + link + ">Click here to verify</a>";
     try {
         console.log("send mail")
