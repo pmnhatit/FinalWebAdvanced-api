@@ -138,7 +138,8 @@ router.post("/signup", async (req, res, next) => {
 
   try {
     const user = await userModel.getUserByUsername(req.body.username);
-    if (user) {
+    const user_verify = await verifyService.getUserByUsername(req.body.username);
+    if (user||user_verify) {
       res.status(401).json({ message: "user_exists" });
     } else {
       verifyService.sendemailverify(req, res, next);
@@ -156,6 +157,27 @@ router.post("/signup", async (req, res, next) => {
   }
 });
 
+router.post("/forgot-password",
+async (req, res, next) => {
+  try {
+    console.log("vo forgot")
+    await userModel.forgotPassword(req, res, next);
+    res.json({ message: "Check your email" });
+  } catch (error) {
+    res.status(401).json({ message: "errors", error: error });
+  }
+}
+);
 
+router.post("/reset-password",
+async (req, res, next) => {
+  try {
+    console.log("vo reset")
+    await userModel.resetPass(req, res, next);
+  } catch (error) {
+    res.status(401).json({ message: "errors", error: error });
+  }
+}
+)
 
 module.exports = router;

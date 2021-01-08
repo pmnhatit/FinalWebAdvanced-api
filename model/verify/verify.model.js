@@ -3,6 +3,11 @@ const nodemailer = require("nodemailer");
 const verifyModel = require("./verify");
 const userService = require("../user/user.model");
 
+module.exports.getUserByUsername = async (username) =>{
+    const result = await verifyModel.findOne({username: username});
+    return result;
+}
+
 module.exports.sendemailverify = async (req, res, next) => {
     let verifycode, link, content;
     const {username, password, name, phone, email} = req.body;
