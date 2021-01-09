@@ -1,6 +1,7 @@
 const userModel = require('./user');
 const bcrypt = require('bcryptjs');
 const verifyService = require("../verify/verify.model");
+const historyModel=require('../history/history.model');
 
 module.exports.getUserByUsername = async (username)=>{
     const result = await userModel.findOne({username: username});
@@ -149,4 +150,46 @@ module.exports.resetPass = async (req, res, next) =>{
     } catch (error) {
         res.status(400).json({message:"error"});
     }
+}
+
+module.exports.editTrophies = async (id_player1,id_player2) =>{
+    try {
+        const changeTrophies=20;
+        const player1= await this.getUserByID(id_player1);  //
+        const player2= await this.getUserByID(id_player2);  //
+
+        const history1 = await historyModel.getHistoryByID(id_player1); 
+        const history2 = await historyModel.getHistoryByID(id_player2); 
+        
+        const newProfile1= await this.CaculateTrophies(id_player1,history1);
+        const newProfile2= await this.CaculateTrophies(id_player2,history1);
+
+        await this.updateUserInfo(id_player1,"","","","",newProfile1.matches,player1.trophies+20,newProfile1.win_rate);
+        await this.updateUserInfo(id_player1,"","","","",newProfile2.matches,player2.trophies-20,newProfile2.win_rate);
+
+    } catch (error) {
+        console.log("edit trophies fail");
+    }
+    
+    
+      
+
+}
+module.exports.CaculateTrophies = async (id_player,history) =>{
+    
+    const win=0;
+    const total=history.length();
+    for(let i=0 ;i<history.length;i++) // dem so tran thang
+    { 
+        if(id_player==history[i]._id)
+        {
+            win++;
+        }
+    }
+    const entity={              //save new profileInfo
+        matches:total,
+        win_rate: win/total*100,
+
+    }
+    return entity;
 }
