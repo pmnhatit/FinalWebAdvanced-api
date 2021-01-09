@@ -17,7 +17,7 @@ module.exports.handleClick =  (i,history,nextMove)=>{
 }
 
 
-const size=5;
+const size=20;
 function  checkWin(i, user,history){
     
  
@@ -74,7 +74,7 @@ function  checkWin(i, user,history){
             isBlock = false;
         }
         coorX = row;
-        if (isBlock === false && countCol >= 4) 
+        if (isBlock === false && countCol >= 5) 
         return {
             winCells,
             user
@@ -114,7 +114,7 @@ function  checkWin(i, user,history){
         }
         coorY = col;
        
-        if (isBlock === false && countRow >= 4) 
+        if (isBlock === false && countRow >= 5) 
         return {
             winCells,
             user
@@ -159,7 +159,7 @@ function  checkWin(i, user,history){
         }
         coorX = row;
         coorY = col;
-        if (isBlock === false && countMainDiagonal >= 4) 
+        if (isBlock === false && countMainDiagonal >= 5) 
         return {
             winCells,
             user
@@ -202,7 +202,7 @@ function  checkWin(i, user,history){
         if (coorX <= size - 1 && coorY <= size - 1 && squares[t] !== rival) {
             isBlock = false;
         }
-        if (isBlock === false && countSkewDiagonal >= 4) 
+        if (isBlock === false && countSkewDiagonal >= 5) 
         return {
             winCells,
             user
