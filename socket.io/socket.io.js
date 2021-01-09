@@ -13,6 +13,10 @@ const { addUser, removeUser, getUser, getUsersInRoom } = require('../users');
 
 module.exports = function (io, socket) {
   console.log("co ket noi", socket.id);
+  socket.on('remove_time',(data)=>{
+    const roomInfo=data;
+    clock.countdown(roomInfo.time,io,socket,roomInfo.history.length,roomInfo,"yes");
+  })
   socket.on('tableonline', () => {
     io.sockets.emit("tableonline_play", listPlay);
     io.sockets.emit("tableonline_wait", listWait);
@@ -97,7 +101,8 @@ module.exports = function (io, socket) {
     let squares;
     for (let i = 0; i < listRooms.length; i++) {
       if (listRooms[i].id === socket.room && (listRooms[i].winner == null)) {
-        clock.countdown(listRooms[i].time,io,socket,listRooms[i].history.length,listRooms[i]);
+      
+        clock.countdown(listRooms[i].time,io,socket,listRooms[i].history.length,listRooms[i],"no");
         for(let j=0;j<listRooms[i].history.length;j++){
           if(data.i===listRooms[i].history[j])
           {
@@ -225,21 +230,21 @@ module.exports = function (io, socket) {
     socket.data = data;
   
     const _data = {
-      name: data.nameSender,
+      name: data.name,
       idsocket_sender: socket.id,
       idsender: data.id_send,
       pass: data.id_send
     }
     var room = {
       id: data.id_send,
-      playerX: data.nameSender,
+      playerX: data.name,
       idplayerX: data.id_send,
       playerO: null,
       idplayerO: null,
       pass: data.id_send,
       viewer: [],
       time:data.time,
-      squares: Array(5 * 5).fill(null),
+      squares: Array(20 * 20).fill(null),
       winner: null,
       history: []
     }
@@ -290,7 +295,7 @@ module.exports = function (io, socket) {
       pass: data.pass,
       time:data.time,
       viewer: [],
-      squares: Array(5 * 5).fill(null),
+      squares: Array(20 * 20).fill(null),
       winner: null,
       history: []
     }
@@ -352,7 +357,7 @@ module.exports = function (io, socket) {
       pass: data.pass,
       viewer: [],
       time:data.time,
-      squares: Array(5 * 5).fill(null),
+      squares: Array(20 * 20).fill(null),
       winner: null,
       history: []
     }
@@ -426,7 +431,11 @@ module.exports = function (io, socket) {
     // create new room if there is no empty one
 
   });
-
+  socket.on('infoWinnerNotification',({data,roomInfo})=>{
+    const namewinner=(data.winner==='X') ? roomInfo.playerX:roomInfo.playerO;
+    clock.countdown(roomInfo.time,io,socket,roomInfo.history.length,roomInfo,"yes");
+    socket.emit('infoWinnerNotification',namewinner);
+  })
   socket.on('infoWinner', (data) => {
     console.log("winner winner chicken dinner " ,data);
     for (var i = 0; i < listRooms.length; i++) {
