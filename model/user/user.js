@@ -7,6 +7,7 @@ var userchema = new mongoose.Schema({
     password: String,
     name: String,
     phone: String,
+    image:String,
     email: String,
     matches: Number,
     trophies:Number,
