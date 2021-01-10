@@ -6,9 +6,10 @@ var logger = require('morgan');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
-const usersRouter= require("./routes/users")
+const usersRouter= require("./routes/users");
 const profileRouter= require('./routes/profile');
 const verifyRouter = require("./routes/verify");
+const detailMatchRoute= require("./routes/detailmatch");
 
 
 mongoose.connect(process.env.URI, {useNewUrlParser: true});
@@ -29,6 +30,7 @@ app.use(cors());
 app.use('/users', usersRouter);
 app.use('/profile',profileRouter);
 app.use('/verify',verifyRouter);
+app.use('/detailmatch',detailMatchRoute);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

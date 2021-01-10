@@ -6,6 +6,7 @@ const historyModel = require("../model/history/history.model");
 const userModel = require("../model/user/user.model");
 const bcrypt = require('bcryptjs');
 const { log } = require("debug");
+const {cloudinary}=require("../services/cloudinary/cloudinary");
 
 
 /* GET users listing. */
@@ -43,6 +44,10 @@ router.get("/history/:id",passport.authenticate("jwt", { session: false }),async
           {
             enemy=user1.name;
           }
+          if(result[i].draw==true)
+          {
+            winner="draw";
+          }
           console.log(2);
           let entity={
           _id:result[i]._id,
@@ -73,27 +78,40 @@ router.get("/:id",passport.authenticate("jwt", { session: false }),async (req, r
 
 router.post("/edit/:id",passport.authenticate("jwt", { session: false }),async (req, res,next) => {
     const entity = req.body;
-    const result= await userModel.updateUserInfo(req.params.id,entity.name,entity.phone,"","","");
+    const result= await userModel.updateUserInfo(req.params.id,entity.name,entity.phone,"","","","","");
   }
 );
 router.post("/changepassword/:id",passport.authenticate("jwt", { session: false }),async (req, res,next) => {
   const entity = req.body;
   const user = await userModel.getUserByID(req.params.id);
-  console.log(entity.oldPassword);
-  console.log(user.password);
+  //console.log(entity.oldPassword);
+  //console.log(user.password);
   const mess= bcrypt.compareSync(entity.oldPassword,user.password);
-  console.log(mess);
+  //console.log(mess);
   if (mess) {
     const hash= bcrypt.hashSync(entity.newPassword, bcrypt.genSaltSync(10));
-    await userModel.updateUserInfo(req.params.id,"","",hash,"","","");
+    await userModel.updateUserInfo(req.params.id,"","","",hash,"","","");
     res.json({ message: "success"});
     
   } else {
-   console.log("sai mk");
+   //console.log("sai mk");
    res.json({ message: "fail" });
   }
-  
- 
+}
+);
+router.post("/changeimage/:id",passport.authenticate("jwt", { session: false }),async (req, res,next) => {
+  const entity = req.body;
+  console.log(req.body.data);
+  try {
+    const fileString=req.body.data;
+    const result = await cloudinary.uploader.upload(fileString);
+    console.log(result);
+    await userModel.updateUserInfo(req.params.id,"","",result.url,"","","","");
+    res.json({ message: "success"});
+  } catch (error) {
+    res.json({ message: "fail" });
+  }
+  //const result= await userModel.updateUserInfo(req.params.id,entity.name,entity.phone,"","","");
 }
 );
 
