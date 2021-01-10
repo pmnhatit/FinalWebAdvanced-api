@@ -193,7 +193,6 @@ module.exports = function (io, socket) {
       }
 
     }
-
   }
   else{
     for (var i = 0; i < listPlay.length; i++) {
@@ -246,7 +245,8 @@ module.exports = function (io, socket) {
       time:data.time,
       squares: Array(20 * 20).fill(null),
       winner: null,
-      history: []
+      history: [],
+      chat:[]
     }
     listRooms.push(room);
     // add this client to the room
@@ -297,7 +297,8 @@ module.exports = function (io, socket) {
       viewer: [],
       squares: Array(20 * 20).fill(null),
       winner: null,
-      history: []
+      history: [],
+      chat:[]
     }
     listRooms.push(room);
     // add this client to the room
@@ -359,7 +360,8 @@ module.exports = function (io, socket) {
       time:data.time,
       squares: Array(20 * 20).fill(null),
       winner: null,
-      history: []
+      history: [],
+      chat:[]
     }
     listRooms.push(room);
     // add this client to the room
@@ -438,29 +440,30 @@ module.exports = function (io, socket) {
   })
   socket.on('infoWinner', (data) => {
     console.log("winner winner chicken dinner " ,data);
+    io.to(socket.room).emit('outroom');
     for (var i = 0; i < listRooms.length; i++) {
 
       // it's empty when there is no second player
       if (listRooms[i].id === data.roomInfo && (listRooms[i].winner != null)) {
         const player1 = data.winner === 'X' ? listRooms[i].idplayerX : listRooms[i].idplayerO;
         const player2 = data.winner === 'X' ? listRooms[i].idplayerO : listRooms[i].idplayerX;
-        const date = timestamp('DD/MM/YYYY');
-        // const newHistory = historyModel.createHistory(
-        //   player1,
-        //   player2,
-        //   date,
-        //   0
-        // );
+        const date = timestamp('DD/MM/YYYY HH:mm:ss');
+        console.log("ok");
+        const newHistory = historyModel.createHistory(
+          player1,
+          player2,
+          date,
+          0
+        );
         return;
       }
     }
   })
   // chat
-  socket.on('join_chat', ({ name, room }, callback) => {
-    console.log('name ',name);
-    console.log('room ',room);
+  socket.on('join_chat', ({ name, room,roomInfo }, callback) => {
+    
     name = name.slice(1, name.length - 1);
-    console.log(name, room);
+
     const { error, user } = addUser({ id: socket.id, name, room });
 
     if (error) return callback(error);
@@ -468,15 +471,30 @@ module.exports = function (io, socket) {
     socket.join(user.room);
 
     socket.emit('message', { user: 'admin', text: `${user.name}, welcome to room ${user.room}.` });
+    for(let i=0;i<listRooms.length;i++){
+      if(listRooms[i].id===roomInfo.id){
+        socket.emit('oldchat',roomInfo.chat);
+      }
+    }
+   
     socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name} has joined!` });
 
     io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
 
     callback();
   });
-  socket.on('sendMessage', (message, callback) => {
+  socket.on('sendMessage', ({message,roomInfo}, callback) => {
     const user = getUser(socket.id);
-
+    const usermessage={
+      user: user.name, 
+      text: message 
+    }
+    for(let i=0;i<listRooms.length;i++){
+      if(listRooms[i].id===roomInfo.id){
+        listRooms[i].chat.push(usermessage);
+      }
+    }
+   
     io.to(user.room).emit('message', { user: user.name, text: message });
 
     callback();
