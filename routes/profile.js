@@ -44,6 +44,10 @@ router.get("/history/:id",passport.authenticate("jwt", { session: false }),async
           {
             enemy=user1.name;
           }
+          if(result[i].draw==true)
+          {
+            winner="draw";
+          }
           console.log(2);
           let entity={
           _id:result[i]._id,
