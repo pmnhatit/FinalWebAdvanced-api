@@ -7,6 +7,10 @@ module.exports.getHistoryByID = async (player_id)=>{
     const result = await historyModel.find({ $or: [ { player1: player_id }, { player2: player_id} ] });
     return result;
 }
+module.exports.getHistoryByMatchID = async (match_id)=>{
+    const result = await historyModel.find( { _id: match_id } );
+    return result;
+}
 // module.exports.getHistoryNew= async(player1,player2,date)=>
 // {
 //     const result = await historyModel.find({ $and: [ { player1: player1 }, { player2: player2},{date:date} ] });

@@ -20,9 +20,12 @@ router.get(
 router.post("/signin",passport.authenticate("local", { session: false }),
   async (req, res, next) => {
     const user = req.user;
+    
     if (user.message === "false") {
-      res.status(401).json({ message: "username or password invalid" });
+      res.status(401).json({ message: "Tên đăng nhập hoặc mật khẩu sai" });
     } else {
+      if(user.blocked==true)
+        res.status(401).json({ message: "Tài khoản đã bị khóa " });
       const sign = { username: user.username, id: user.id };
       const token = jwt.sign(sign, process.env.JWT_SECRET);
       // console.log("token controller:" + token);
