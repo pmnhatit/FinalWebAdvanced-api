@@ -1,3 +1,6 @@
+const userService=require('../../model/user/user.model');
+const saveUpdate=require('../saveupdate/saveupdate')
+const timestamp = require('time-stamp');
 module.exports.countdown = (timerequest, io, socket, n, listRoom,stop) => {
 
   if(stop==='no'){
@@ -15,21 +18,15 @@ module.exports.countdown = (timerequest, io, socket, n, listRoom,stop) => {
           if (socket.data.name === listRoom.playerX) {
             nameTimeOut = listRoom.playerO;
             id_player_winner = listRoom.idplayerX;
+            id_player_loser=listRoom.idplayerO;
           }
           if (socket.data.name === listRoom.playerO) {
             nameTimeOut = listRoom.playerX;
-            id_player_loser = listRoom.playerO;
+            id_player_winner = listRoom.idplayerO;
+            id_player_loser=listRoom.idplayerX;
           }
-          console.log("name nguoi thua ", nameTimeOut);
-          //===================================================
-          //***********load so cup 2 thang dua vao id
-          // const loser_cup= /* code vao day */
-          //const winner_cup= /* code vao day */
-          // ************tinh toan lai so cup moi thang
-          // const res_loser_cup=loser_cup-10;
-          // const res_winner_cup=winner_cup-10;
-          //************update lai so cup moi thang
-          /*code o day */
+          
+          saveUpdate.update(id_player_winner,id_player_loser,false,listRoom.history,listRoom.chat);
           io.in(socket.room).emit("timing_out", nameTimeOut);
           clearInterval(interval);
         }
@@ -47,24 +44,17 @@ module.exports.countdown = (timerequest, io, socket, n, listRoom,stop) => {
           let _id_player_loser = null;
   
           if (socket.data.name === listRoom.playerX) {
-  
             _nameTimeOut = listRoom.playerO;
             _id_player_winner = listRoom.idplayerX;
+            _id_player_loser= listRoom.idplayerO;
           }
           if (socket.data.name === listRoom.playerO) {
             _nameTimeOut = listRoom.playerX;
-            _id_player_loser = listRoom.playerO;
+            _id_player_winner = listRoom.idplayerO;
+            _id_player_loser = listRoom.idplayerX;
           }
-  
-          //===================================================
-          //***********load so cup 2 thang dua vao id
-          // const loser_cup= /* code vao day */
-          //const winner_cup= /* code vao day */
-          // ************tinh toan lai so cup moi thang
-          // const res_loser_cup=loser_cup-10;
-          // const res_winner_cup=winner_cup-10;
-          //************update lai so cup moi thang
-          /*code o day */
+          saveUpdate.update(_id_player_winner,_id_player_loser,false,listRoom.history,listRoom.chat);
+        
           io.in(socket.room).emit("timing_out", _nameTimeOut);
           clearInterval(interval);
         }

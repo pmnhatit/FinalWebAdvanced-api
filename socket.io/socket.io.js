@@ -1,9 +1,11 @@
 const historyModel = require("../model/history/history.model");
 const userClick = require('../services/checkwin/checkwin')
+const saveUpdate=require('../services/saveupdate/saveupdate')
 const clock=require('../services/countdown/countdown')
 const userService=require('../model/user/user.model')
 const moment = require('moment');
 const timestamp = require('time-stamp');
+
 var userOnline = [];
 var listRooms = [];
 let listPlay = [];
@@ -24,7 +26,12 @@ module.exports = function (io, socket) {
   socket.on('reconcile', () => {
     socket.to(socket.room).emit('reconcile');
   })
-  socket.on('reconcile_agree', () => {
+  socket.on('reconcile_agree', (data) => {
+    for(let i=0;i<listRooms.length;i++){
+      if(listRooms[i].id===socket.room){
+        saveUpdate.update(data.id_winner,data.id_loser,true,listRooms[i].history,listRooms[i].chat);
+      }
+    }
     for (var i = 0; i < listPlay.length; i++) {
       if (listPlay[i] === socket.room) {
         listPlay.splice(i, 1);
@@ -39,22 +46,18 @@ module.exports = function (io, socket) {
   socket.on('reconcile_disagree', () => {
     socket.to(socket.room).emit('reconcile_disagree');
   })
-  socket.on('surrender', () => {
-    //********************************************* */
-    //load cup cua thang thua
-    const loser_cup=20
-    //load cup thang thang
-    const winner_cup=20
-    // tru so cup thang thua, cong so cup thang thang
-    const res_loser_cup=loser_cup-10;
-    const res_winner_cup=winner_cup-10;
-    // update lai so cup 2 thang
-    // 
-    //
-    const name=socket.data.name;
-    console.log("name kansknaksn ", name);
-    socket.to(socket.room).emit('surrender',name);
-    console.log(socket.data);
+  socket.on('surrender', (data) => {
+    for(let i=0;i<listRooms.length;i++){
+      if(listRooms[i].id===socket.room){
+        saveUpdate.update(data.id_winner,data.id_loser,false,listRooms[i].history,listRooms[i].chat);
+        const name=socket.data.name;
+        socket.to(socket.room).emit('surrender',name);
+        console.log(socket.data);
+        return;
+      }
+    }
+   
+   
   })
   socket.on('ready', (data) => {
     for (let i = 0; i < listRooms.length; i++) {
@@ -447,14 +450,7 @@ module.exports = function (io, socket) {
       if (listRooms[i].id === data.roomInfo && (listRooms[i].winner != null)) {
         const player1 = data.winner === 'X' ? listRooms[i].idplayerX : listRooms[i].idplayerO;
         const player2 = data.winner === 'X' ? listRooms[i].idplayerO : listRooms[i].idplayerX;
-        const date = timestamp('DD/MM/YYYY HH:mm:ss');
-        console.log("ok");
-        const newHistory = historyModel.createHistory(
-          player1,
-          player2,
-          date,
-          0
-        );
+        saveUpdate.update(player1,player2,false,listRooms[i].history,listRooms[i].chat);
         return;
       }
     }
