@@ -55,6 +55,7 @@ module.exports.updateUserInfo = async (id, name, phone,image,password,matches,tr
     if(matches!=="")
     {
         console.log("matches not null");
+        console.log(matches, trophies);
         const result = await userModel.updateOne({ '_id': id }, { $set: { 'matches':matches,'trophies': trophies, 'win_rate': win_rate }}, (err, doc) => {
                 if (err) {
                     console.log("update match error");
@@ -155,39 +156,16 @@ module.exports.resetPass = async (req, res, next) =>{
         res.status(400).json({message:"error"});
     }
 }
-
-module.exports.editTrophies = async (id_player1,id_player2) =>{
-    try {
-        const changeTrophies=20;
-        const player1= await this.getUserByID(id_player1);  //
-        const player2= await this.getUserByID(id_player2);  //
-
-        const history1 = await historyModel.getHistoryByID(id_player1); 
-        const history2 = await historyModel.getHistoryByID(id_player2); 
-        
-        const newProfile1= await this.CaculateTrophies(id_player1,history1);
-        const newProfile2= await this.CaculateTrophies(id_player2,history1);
-
-        await this.updateUserInfo(id_player1,"","","","",newProfile1.matches,player1.trophies+20,newProfile1.win_rate);
-        await this.updateUserInfo(id_player1,"","","","",newProfile2.matches,player2.trophies-20,newProfile2.win_rate);
-
-    } catch (error) {
-        console.log("edit trophies fail");
-    }
-    
-    
-      
-
-}
 module.exports.CaculateTrophies = async (id_player,history) =>{
     
-    const win=0;
-    const total=history.length();
+    let win=0;
+    const total=history.length;
+    console.log('claadkmkadm');
     for(let i=0 ;i<history.length;i++) // dem so tran thang
     { 
-        if(id_player==history[i]._id)
+        if(id_player==history[i].player1&&(history[i].draw==false))
         {
-            win++;
+            win=win+1;
         }
     }
     const entity={              //save new profileInfo
@@ -195,5 +173,40 @@ module.exports.CaculateTrophies = async (id_player,history) =>{
         win_rate: win/total*100,
 
     }
+    console.log("win ",win);
+    console.log('total ',total)
+    console.log('entity ',entity)
     return entity;
+}
+module.exports.editTrophies = async (id_player1,id_player2,draw) =>{
+    try {
+        const changeTrophies=20;
+        const player1= await this.getUserByID(id_player1);  //
+        const player2= await this.getUserByID(id_player2);  //
+
+       
+        const history1 = await historyModel.getHistoryByID(id_player1); 
+        const history2 = await historyModel.getHistoryByID(id_player2); 
+      
+        const newProfile1= await this.CaculateTrophies(id_player1,history1);
+        const newProfile2= await this.CaculateTrophies(id_player2,history2);
+        console.log("newProfile1 " ,newProfile1);
+        console.log("newProfile2 " ,newProfile2);
+        if(draw){
+            await this.updateUserInfo(id_player1,"","","","",newProfile1.matches,player1.trophies,newProfile1.win_rate);
+        await this.updateUserInfo(id_player2,"","","","",newProfile2.matches,player2.trophies,newProfile2.win_rate);
+        }else{
+            await this.updateUserInfo(id_player1,"","","","",newProfile1.matches,player1.trophies+20,newProfile1.win_rate);
+            await this.updateUserInfo(id_player2,"","","","",newProfile2.matches,player2.trophies-20,newProfile2.win_rate);
+        }
+        
+
+    } catch (error) {
+        console.log("edit trophies fail");
+        console.log(error);
+    }
+    
+    
+      
+
 }

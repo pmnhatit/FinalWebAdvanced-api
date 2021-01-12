@@ -8,9 +8,15 @@ const chatHistoryModel=require("../model/chatHistory/chatHistory.model");
 
 router.get("/:id",passport.authenticate("jwt", { session: false }),async (req, res, next) => {
     const match_id=req.params.id;
+    console.log("kjasdijasidjsiaj");
     const move= await moveHistoryModel.getMoveHistoryByID(match_id);
     const chat= await chatHistoryModel.getChatHistoryByID(match_id);
-    res.send(move,chat); 
+    console.log("move ",move);
+    console.log("chât" ,chat);
+    const result={move,chat}
+
+    res.json(result);
+    // res.send(move,chat); 
 }
 );
 /* GET users listing. */

@@ -1,9 +1,11 @@
 const historyModel = require("../model/history/history.model");
 const userClick = require('../services/checkwin/checkwin')
+const saveUpdate=require('../services/saveupdate/saveupdate')
 const clock=require('../services/countdown/countdown')
 const userService=require('../model/user/user.model')
 const moment = require('moment');
 const timestamp = require('time-stamp');
+
 var userOnline = [];
 var listRooms = [];
 let listPlay = [];
@@ -24,7 +26,12 @@ module.exports = function (io, socket) {
   socket.on('reconcile', () => {
     socket.to(socket.room).emit('reconcile');
   })
-  socket.on('reconcile_agree', () => {
+  socket.on('reconcile_agree', (data) => {
+    for(let i=0;i<listRooms.length;i++){
+      if(listRooms[i].id===socket.room){
+        saveUpdate.update(data.id_winner,data.id_loser,true,listRooms[i].history,listRooms[i].chat);
+      }
+    }
     for (var i = 0; i < listPlay.length; i++) {
       if (listPlay[i] === socket.room) {
         listPlay.splice(i, 1);
@@ -39,22 +46,18 @@ module.exports = function (io, socket) {
   socket.on('reconcile_disagree', () => {
     socket.to(socket.room).emit('reconcile_disagree');
   })
-  socket.on('surrender', () => {
-    //********************************************* */
-    //load cup cua thang thua
-    const loser_cup=20
-    //load cup thang thang
-    const winner_cup=20
-    // tru so cup thang thua, cong so cup thang thang
-    const res_loser_cup=loser_cup-10;
-    const res_winner_cup=winner_cup-10;
-    // update lai so cup 2 thang
-    // 
-    //
-    const name=socket.data.name;
-    console.log("name kansknaksn ", name);
-    socket.to(socket.room).emit('surrender',name);
-    console.log(socket.data);
+  socket.on('surrender', (data) => {
+    for(let i=0;i<listRooms.length;i++){
+      if(listRooms[i].id===socket.room){
+        saveUpdate.update(data.id_winner,data.id_loser,false,listRooms[i].history,listRooms[i].chat);
+        const name=socket.data.name;
+        socket.to(socket.room).emit('surrender',name);
+        console.log(socket.data);
+        return;
+      }
+    }
+   
+   
   })
   socket.on('ready', (data) => {
     for (let i = 0; i < listRooms.length; i++) {
@@ -193,7 +196,6 @@ module.exports = function (io, socket) {
       }
 
     }
-
   }
   else{
     for (var i = 0; i < listPlay.length; i++) {
@@ -246,7 +248,8 @@ module.exports = function (io, socket) {
       time:data.time,
       squares: Array(20 * 20).fill(null),
       winner: null,
-      history: []
+      history: [],
+      chat:[]
     }
     listRooms.push(room);
     // add this client to the room
@@ -297,7 +300,8 @@ module.exports = function (io, socket) {
       viewer: [],
       squares: Array(20 * 20).fill(null),
       winner: null,
-      history: []
+      history: [],
+      chat:[]
     }
     listRooms.push(room);
     // add this client to the room
@@ -359,7 +363,8 @@ module.exports = function (io, socket) {
       time:data.time,
       squares: Array(20 * 20).fill(null),
       winner: null,
-      history: []
+      history: [],
+      chat:[]
     }
     listRooms.push(room);
     // add this client to the room
@@ -438,29 +443,23 @@ module.exports = function (io, socket) {
   })
   socket.on('infoWinner', (data) => {
     console.log("winner winner chicken dinner " ,data);
+    io.to(socket.room).emit('outroom');
     for (var i = 0; i < listRooms.length; i++) {
 
       // it's empty when there is no second player
       if (listRooms[i].id === data.roomInfo && (listRooms[i].winner != null)) {
         const player1 = data.winner === 'X' ? listRooms[i].idplayerX : listRooms[i].idplayerO;
         const player2 = data.winner === 'X' ? listRooms[i].idplayerO : listRooms[i].idplayerX;
-        const date = timestamp('DD/MM/YYYY');
-        // const newHistory = historyModel.createHistory(
-        //   player1,
-        //   player2,
-        //   date,
-        //   0
-        // );
+        saveUpdate.update(player1,player2,false,listRooms[i].history,listRooms[i].chat);
         return;
       }
     }
   })
   // chat
-  socket.on('join_chat', ({ name, room }, callback) => {
-    console.log('name ',name);
-    console.log('room ',room);
+  socket.on('join_chat', ({ name, room,roomInfo }, callback) => {
+    
     name = name.slice(1, name.length - 1);
-    console.log(name, room);
+
     const { error, user } = addUser({ id: socket.id, name, room });
 
     if (error) return callback(error);
@@ -468,15 +467,30 @@ module.exports = function (io, socket) {
     socket.join(user.room);
 
     socket.emit('message', { user: 'admin', text: `${user.name}, welcome to room ${user.room}.` });
+    for(let i=0;i<listRooms.length;i++){
+      if(listRooms[i].id===roomInfo.id){
+        socket.emit('oldchat',roomInfo.chat);
+      }
+    }
+   
     socket.broadcast.to(user.room).emit('message', { user: 'admin', text: `${user.name} has joined!` });
 
     io.to(user.room).emit('roomData', { room: user.room, users: getUsersInRoom(user.room) });
 
     callback();
   });
-  socket.on('sendMessage', (message, callback) => {
+  socket.on('sendMessage', ({message,roomInfo}, callback) => {
     const user = getUser(socket.id);
-
+    const usermessage={
+      user: user.name, 
+      text: message 
+    }
+    for(let i=0;i<listRooms.length;i++){
+      if(listRooms[i].id===roomInfo.id){
+        listRooms[i].chat.push(usermessage);
+      }
+    }
+   
     io.to(user.room).emit('message', { user: user.name, text: message });
 
     callback();
