@@ -12,7 +12,11 @@ module.exports.getUserByID= async (id) =>{
     const result = await userModel.findOne({_id: id});
     return result;
 }
-
+module.exports.getUserForChart=async(num)=>
+{
+    const result = await userModel.find().sort({ trophies: -1 }).limit(num).lean();
+    return result;  
+}
 module.exports.updateUserInfo = async (id, name, phone,image,password,matches,trophies,win_rate) => {
     if(name!=="")
     {   //console.log("name not null");
