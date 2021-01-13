@@ -20,7 +20,7 @@ router.get(
 router.post("/signin",passport.authenticate("local", { session: false }),
   async (req, res, next) => {
     const user = req.user;
-    
+    console.log(user);
     if (user.message === "false") {
       res.status(401).json({ message: "Tên đăng nhập hoặc mật khẩu sai" });
     } else {
@@ -68,6 +68,8 @@ router.post("/signin/google", async (req, res, next) => {
         const sign = { username: user.username,password: user.password };
         const token = jwt.sign(sign, process.env.JWT_SECRET);
         // console.log("token controller:" + token);
+        if(user.blocked== true)
+        res.status(401).json({ message: "Tài khoản đã bị khóa " });
         res.json({ message: "200OK", token: token, user: user });}
     }
 
@@ -81,7 +83,8 @@ router.post("/signin/google", async (req, res, next) => {
 
 
 const verifyFB=async(accessToken,userID,res)=>
-{
+{ 
+  console.log(accessToken);
   let data='';
   const linkUrl=`https://graph.facebook.com/v2.11/${userID}/?fields=id,name,email&access_token=${accessToken}`;
       const a = await fetch(linkUrl, {
@@ -94,14 +97,14 @@ const verifyFB=async(accessToken,userID,res)=>
         .then((res) => res.json())
         .then((result) => {
           data=result;
-          //return result;
+         
        
         })
         .catch((err) => {
           
           console.log("error aa");
         });
-        
+         console.log(data);
           const userid = data.id;
           if (data === '') {      
             res.status(401).json({ message: "facebook auth fall" });
@@ -118,10 +121,15 @@ const verifyFB=async(accessToken,userID,res)=>
                  data.email
                );
               user = await userModel.getUserByUsername(userid);  
+              
              } 
+             console.log(user);
              const sign = { username: user.username,password: user.password };
              const token = jwt.sign(sign, process.env.JWT_SECRET);
             //  console.log("token controller:" + token);
+            if(user.blocked== true)
+            res.status(401).json({ message: "Tài khoản đã bị khóa " });
+             
              res.json({ message: "200OK", token: token, user: user });}   
       
 }

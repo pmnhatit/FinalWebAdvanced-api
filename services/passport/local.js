@@ -11,7 +11,7 @@ module.exports = new LocalStrategy({ session: false },async (username, password,
       callback(null, { message: "false" });
     } else {
       const infoUser = {_id:user._id ,username: user.username,name: user.name,
-        phone: user.phone, email: user.email}
+        phone: user.phone, email: user.email,blocked:user.blocked}
         bcrypt.compare(password,user.password, (err,isMatch ) =>{
           if (err) throw err;
                   if (isMatch) {
