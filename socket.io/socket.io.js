@@ -2,7 +2,7 @@ const historyModel = require("../model/history/history.model");
 const userClick = require('../services/checkwin/checkwin')
 const saveUpdate=require('../services/saveupdate/saveupdate')
 const clock=require('../services/countdown/countdown')
-const userService=require('../model/user/user.model')
+const userModel=require('../model/user/user.model')
 const moment = require('moment');
 const timestamp = require('time-stamp');
 
@@ -313,27 +313,37 @@ module.exports = function (io, socket) {
     console.log('Room [' + socket.room + '] created');
   })
 
-  socket.on('joinroom_quick', function (data) {
+  socket.on('joinroom_quick', async function (data) {
     console.log("list room ",listRooms);
     // save data
     socket.data = data;
+    console.log(data.id_player);
+    const user_player2= await userModel.getUserByID(data.id_player);
+    const cup_player2=user_player2.trophies;    
     for (var i = 0; i < listRooms.length; i++) {
+
       if (listRooms[i].playerO == null) {
-        listRooms[i].playerO = data.name;
-        listRooms[i].idplayerO = data.id_player;
-        socket.room = listRooms[i].id;
-        socket.history = listRooms[i].squares;
-        socket.join(socket.room);
-        // send successful message to both
-        io.in(listRooms[i].id).emit('joinroom-success', listRooms[i]);
-        for (var i = 0; i < listWait.length; i++) {
-          if (listWait[i] === socket.room) {
-            listWait.splice(i, 1);
-            listPlay.push(socket.room);
+        console.log(listRooms[i].idplayerX);
+        const user_player1= await userModel.getUserByID(listRooms[i].idplayerX);
+        const cup_player1=user_player1.trophies;       
+        if(Math.abs(cup_player1 - cup_player2)<=200){
+          listRooms[i].playerO = data.name;
+          listRooms[i].idplayerO = data.id_player;
+          socket.room = listRooms[i].id;
+          socket.history = listRooms[i].squares;
+          socket.join(socket.room);
+          // send successful message to both
+          io.in(listRooms[i].id).emit('joinroom-success', listRooms[i]);
+          for (var i = 0; i < listWait.length; i++) {
+            if (listWait[i] === socket.room) {
+              listWait.splice(i, 1);
+              listPlay.push(socket.room);
+            }
           }
+          console.log('Room [' + socket.room + '] played');
+          return;
         }
-        console.log('Room [' + socket.room + '] played');
-        return;
+     
       }
       if (listRooms[i].playerX === "DISCONNECTED" && listRooms[i].idplayerX === data.id_player) {
         listRooms[i].playerX = data.name;
