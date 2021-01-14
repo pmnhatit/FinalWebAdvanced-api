@@ -122,7 +122,8 @@ module.exports.forgotPassword = async (req, res, next)=>{
     }else{
         this.addCodeResetPass(username, code);
     // link = "http://" + req.get('host') + "/user/emailverify/verify?id=" + verifycode + "&username=" + username;
-    link = "http://localhost:3000" + "/reset-password/" + username;
+    // link = "http://localhost:3000" + "/reset-password/" + username;
+    link = "https://user-caro.herokuapp.com" + "/reset-password/" + username;
     content = "Hello this is caro online mail system, this is code to reset password: <h3>"+code+"</h3><br> Please Click on the link to reset your password.<br><a href=" + link + ">Click here to verify</a>";
     try {
         console.log("send mail")
