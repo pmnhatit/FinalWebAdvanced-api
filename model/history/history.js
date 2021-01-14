@@ -7,7 +7,7 @@ var historychema = new mongoose.Schema({
     // id: String,
     player1: String,
     player2: String, 
-    date: Date,
+    date: String,
     order: Number,
     draw:Boolean,
 },

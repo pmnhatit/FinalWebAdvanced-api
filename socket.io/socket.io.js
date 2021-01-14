@@ -29,7 +29,17 @@ module.exports = function (io, socket) {
   socket.on('reconcile_agree', (data) => {
     for(let i=0;i<listRooms.length;i++){
       if(listRooms[i].id===socket.room){
+        const date = timestamp('DD/MM/YYYY HH:mm:ss');
         saveUpdate.update(data.id_winner,data.id_loser,true,listRooms[i].history,listRooms[i].chat);
+        const newHistory = historyModel.createHistory(
+          data.id_winner,
+          data.id_loser,
+          date,
+          0,
+          true,
+          listRooms[i].history,
+          listRooms[i].chat
+        );
       }
     }
     for (var i = 0; i < listPlay.length; i++) {
@@ -60,21 +70,27 @@ module.exports = function (io, socket) {
    
   })
   socket.on('ready', (data) => {
+    
     for (let i = 0; i < listRooms.length; i++) {
+    
       if (listRooms[i].id === data.idroom) {
-
+        console.log("list room ")
         if (data.name === listRooms[i].playerX) {
+        
           io.in(listRooms[i].id).emit('readyX');
         }
         if (data.name === listRooms[i].playerO) {
+         
           io.in(listRooms[i].id).emit('readyO');
         }
       }
-      break;
+      
     }
+    return;
   })
   socket.on('onlineUser', (data) => {
 
+    console.log("data ",data);
     if (data === undefined) {
       console.log(userOnline)
       io.sockets.emit("onlineUserServer", userOnline);
@@ -120,8 +136,9 @@ module.exports = function (io, socket) {
           listRooms[i].winner = history.winCells;
         }
         listRooms[i].squares = history.squares;
+        break;
       }
-      break;
+     
     }
     // const history=userClick.handleClick(data,socket.history,XorO);
     socket.to(socket.room).emit('move', data);
@@ -310,18 +327,20 @@ module.exports = function (io, socket) {
     socket.join(socket.room);
     //them ban choi vao danh sach cho 
     listWait.push(room.id);
+    io.sockets.emit("tableonline_play", listPlay);
+    io.sockets.emit("tableonline_wait", listWait);
     console.log('Room [' + socket.room + '] created');
   })
 
   socket.on('joinroom_quick', async function (data) {
-    console.log("list room ",listRooms);
+   
     // save data
     socket.data = data;
     console.log(data.id_player);
     const user_player2= await userModel.getUserByID(data.id_player);
     const cup_player2=user_player2.trophies;    
     for (var i = 0; i < listRooms.length; i++) {
-
+      console.log("list room ",listRooms[i]);
       if (listRooms[i].playerO == null) {
         console.log(listRooms[i].idplayerX);
         const user_player1= await userModel.getUserByID(listRooms[i].idplayerX);
@@ -340,6 +359,8 @@ module.exports = function (io, socket) {
               listPlay.push(socket.room);
             }
           }
+          io.sockets.emit("tableonline_play", listPlay);
+          io.sockets.emit("tableonline_wait", listWait);
           console.log('Room [' + socket.room + '] played');
           return;
         }
@@ -383,6 +404,8 @@ module.exports = function (io, socket) {
     socket.join(socket.room);
     //them ban choi vao danh sach cho 
     listWait.push(room.id);
+    io.sockets.emit("tableonline_play", listPlay);
+    io.sockets.emit("tableonline_wait", listWait);
     console.log('Room [' + socket.room + '] created');
 
   });
@@ -401,6 +424,8 @@ module.exports = function (io, socket) {
           socket.join(socket.room);
           io.in(listRooms[i].id).emit('joinroom-success', listRooms[i]);
           io.in(listRooms[i].id).emit('re_reconnect', listRooms[i].history);
+          io.sockets.emit("tableonline_play", listPlay);
+          io.sockets.emit("tableonline_wait", listWait);
           return;
         }
         if (listRooms[i].playerO === "DISCONNECTED" && listRooms[i].idplayerO === data.id_player) {
@@ -555,6 +580,18 @@ module.exports = function (io, socket) {
       }
     }
   });
+  socket.on('logout',()=>{
+    console.log("ok");
+    for (var i = 0; i < userOnline.length; i++) {
+      if (userOnline[i].idsocket === socket.id) { // nếu là sinh viên cần xóa
+        userOnline.splice(i, 1);
+        break;
+      }
+    }
+    console.log('userOnline ',userOnline);
+    io.sockets.emit("onlineUserServer", userOnline);
+    console.log('user disconnected', socket.id);
+  })
 
   socket.on('disconnect', () => {
     socket.removeAllListeners();

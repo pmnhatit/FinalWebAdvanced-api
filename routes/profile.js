@@ -100,6 +100,7 @@ router.post("/changepassword/:id",passport.authenticate("jwt", { session: false 
 }
 );
 router.post("/changeimage/:id",passport.authenticate("jwt", { session: false }),async (req, res,next) => {
+  
   const entity = req.body;
   console.log(req.body.data);
   try {

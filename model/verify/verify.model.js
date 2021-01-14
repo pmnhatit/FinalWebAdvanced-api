@@ -14,7 +14,8 @@ module.exports.sendemailverify = async (req, res, next) => {
     verifycode = Math.floor((Math.random() * 10000) + 54);
     await this.createNewVerify(username, password, name, phone, email, verifycode);
     // link = "http://" + req.get('host') + "/user/emailverify/verify?id=" + verifycode + "&username=" + username;
-    link = "https://user-caro.herokuapp.com" + "/verify-email/" + verifycode + "/" + username;
+    // link = "https://user-caro.herokuapp.com" + "/verify-email/" + verifycode + "/" + username;
+    link = "http://localhost:3000" + "/verify-email/" + verifycode + "/" + username;
     content = "Hello this is caro online mail system,<br> Please Click on the link to verify your email.<br><a href=" + link + ">Click here to verify</a>";
     try {
         await this.verifyMessage(req, res, next, content);
